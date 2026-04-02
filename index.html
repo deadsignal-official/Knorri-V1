@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Knorri 🧸</title>
+<meta name="description" content="Knorri — jouw slimme knuffelbuddy die altijd voor je klaarstaat.">
+<meta name="theme-color" content="#F4A261">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Knorri">
+<link rel="manifest" id="manifest-placeholder">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --cream: #FDF6EC;
+    --warm-white: #FFFAF3;
+    --amber: #F4A261;
+    --amber-dark: #E07B39;
+    --amber-light: #FFD5A8;
+    --rose: #E8837A;
+    --rose-light: #FADADD;
+    --mint: #7BCFB8;
+    --mint-light: #C8F0E8;
+    --lavender: #B8A9D9;
+    --lavender-light: #EAE4F5;
+    --text-dark: #3A2E28;
+    --text-mid: #7A6057;
+    --text-soft: #B09080;
+    --shadow-warm: 0 4px 20px rgba(244,162,97,0.18);
+    --shadow-soft: 0 2px 12px rgba(58,46,40,0.08);
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--cream);
+    color: var(--text-dark);
+    min-height: 100dvh;
+    max-width: 430px;
+    margin: 0 auto;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(255,213,168,0.4) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(200,240,232,0.35) 0%, transparent 50%),
+      radial-gradient(ellipse at 60% 30%, rgba(234,228,245,0.3) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ===== LAYOUT ===== */
+  #app { 
+    position: relative; 
+    z-index: 1; 
+    display: flex; 
+    flex-direction: column; 
+    height: 100dvh;
+  }
+
+  /* ===== HEADER ===== */
+  .app-header {
+    padding: 16px 20px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(253,246,236,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1.5px solid rgba(244,162,97,0.15);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .knorri-avatar {
+    width: 46px;
+    height: 46px;
+    background: linear-gradient(135deg, var(--amber-light), var(--rose-light));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    box-shadow: 0 3px 12px rgba(244,162,97,0.35);
+    animation: breathe 3s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+  }
+
+  .header-info { flex: 1; }
+  .header-name {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--amber-dark);
+    line-height: 1;
+  }
+  .header-status {
+    font-size: 11px;
+    color: var(--text-soft);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+  }
+  .status-dot {
+    width: 6px; height: 6px;
+    background: var(--mint);
+    border-radius: 50%;
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.8); }
+  }
+
+  .header-time {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 14px;
+    color: var(--text-soft);
+    font-weight: 500;
+  }
+
+  /* ===== MAIN CONTENT ===== */
+  .tab-content { flex: 1; overflow-y: auto; padding: 16px 16px 80px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: fadeUp 0.3s ease; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== BOTTOM NAV ===== */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    background: rgba(253,246,236,0.95);
+    backdrop-filter: blur(16px);
+    border-top: 1.5px solid rgba(244,162,97,0.12);
+    display: flex;
+    padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+    z-index: 100;
+  }
+
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+    font-family: 'Nunito', sans-serif;
+  }
+
+  .nav-btn .nav-icon {
+    font-size: 22px;
+    transition: transform 0.2s;
+    line-height: 1;
+  }
+  .nav-btn .nav-label {
+    font-size: 9.5px;
+    font-weight: 600;
+    color: var(--text-soft);
+    letter-spacing: 0.3px;
+  }
+  .nav-btn.active .nav-label { color: var(--amber-dark); }
+  .nav-btn.active .nav-icon { transform: scale(1.15); }
+  .nav-btn:active { transform: scale(0.92); }
+
+  .nav-active-pill {
+    position: absolute;
+    bottom: calc(6px + env(safe-area-inset-bottom));
+    height: 3px;
+    width: 24px;
+    background: linear-gradient(90deg, var(--amber), var(--rose));
+    border-radius: 99px;
+    transition: left 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--warm-white);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    box-shadow: var(--shadow-soft);
+    border: 1.5px solid rgba(244,162,97,0.1);
+    margin-bottom: 14px;
+  }
+
+  .card-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ===== SECTION LABEL ===== */
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-soft);
+    margin: 20px 0 10px;
+    padding-left: 2px;
+  }
+
+  /* ===== CHAT ===== */
+  .chat-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 4px;
+    min-height: 200px;
+  }
+
+  .msg {
+    max-width: 82%;
+    padding: 11px 15px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.55;
+    animation: popIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.88); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .msg-knorri {
+    background: linear-gradient(135deg, var(--amber-light), rgba(255,218,180,0.6));
+    border-bottom-left-radius: 6px;
+    align-self: flex-start;
+    color: var(--text-dark);
+    box-shadow: 0 2px 10px rgba(244,162,97,0.2);
+  }
+
+  .msg-user {
+    background: linear-gradient(135deg, var(--mint-light), rgba(180,235,220,0.6));
+    border-bottom-right-radius: 6px;
+    align-self: flex-end;
+    color: var(--text-dark);
+    box-shadow: 0 2px 10px rgba(123,207,184,0.2);
+  }
+
+  .msg-name {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-soft);
+    margin-bottom: 3px;
+    display: block;
+  }
+
+  .typing-indicator {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, var(--amber-light), rgba(255,218,180,0.6));
+    border-radius: 18px;
+    border-bottom-left-radius: 6px;
+    align-self: flex-start;
+    width: fit-content;
+  }
+  .typing-dot {
+    width: 7px; height: 7px;
+    background: var(--amber-dark);
+    border-radius: 50%;
+    animation: bounce 1.2s ease-in-out infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); opacity: 0.5; }
+    50% { transform: translateY(-5px); opacity: 1; }
+  }
+
+  .chat-input-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    margin-top: 14px;
+  }
+
+  .chat-input {
+    flex: 1;
+    background: var(--warm-white);
+    border: 2px solid rgba(244,162,97,0.25);
+    border-radius: 20px;
+    padding: 11px 16px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    color: var(--text-dark);
+    resize: none;
+    outline: none;
+    max-height: 100px;
+    min-height: 44px;
+    transition: border-color 0.2s;
+    line-height: 1.4;
+  }
+  .chat-input:focus { border-color: var(--amber); }
+  .chat-input::placeholder { color: var(--text-soft); }
+
+  .send-btn {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--amber), var(--rose));
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(244,162,97,0.4);
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .send-btn:active { transform: scale(0.92); }
+  .send-btn:disabled { opacity: 0.5; pointer-events: none; }
+
+  /* ===== QUICK ACTIONS ===== */
+  .quick-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  .chip {
+    background: var(--warm-white);
+    border: 1.5px solid rgba(244,162,97,0.25);
+    border-radius: 20px;
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-mid);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Nunito', sans-serif;
+  }
+  .chip:active, .chip:hover { background: var(--amber-light); border-color: var(--amber); color: var(--amber-dark); }
+
+  /* ===== MOOD ===== */
+  .mood-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .mood-btn {
+    aspect-ratio: 1;
+    background: var(--warm-white);
+    border: 2px solid rgba(244,162,97,0.12);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-mid);
+    transition: all 0.2s;
+    box-shadow: var(--shadow-soft);
+  }
+  .mood-btn .mood-emoji { font-size: 28px; line-height: 1; }
+  .mood-btn:active { transform: scale(0.93); }
+  .mood-btn.selected { border-color: var(--amber); background: var(--amber-light); color: var(--amber-dark); transform: scale(1.04); }
+
+  /* ===== PLANNING ===== */
+  .day-tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-bottom: 14px;
+    scrollbar-width: none;
+  }
+  .day-tabs::-webkit-scrollbar { display: none; }
+
+  .day-tab {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    background: var(--warm-white);
+    border: 1.5px solid rgba(244,162,97,0.15);
+    border-radius: 20px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-mid);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .day-tab.active { background: var(--amber); color: white; border-color: var(--amber); box-shadow: 0 3px 10px rgba(244,162,97,0.35); }
+
+  .task-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 0;
+    border-bottom: 1px solid rgba(244,162,97,0.1);
+  }
+  .task-item:last-child { border-bottom: none; }
+
+  .task-time {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 13px;
+    color: var(--text-soft);
+    min-width: 38px;
+    text-align: center;
+    font-weight: 500;
+  }
+
+  .task-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .task-info { flex: 1; }
+  .task-name { font-size: 14px; font-weight: 600; color: var(--text-dark); }
+  .task-cat { font-size: 11px; color: var(--text-soft); margin-top: 1px; }
+
+  .task-check {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 2px solid rgba(244,162,97,0.3);
+    background: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .task-check.done { background: var(--mint); border-color: var(--mint); color: white; }
+
+  /* ===== GOALS ===== */
+  .goal-card {
+    background: var(--warm-white);
+    border-radius: var(--radius-md);
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow-soft);
+    border: 1.5px solid rgba(244,162,97,0.1);
+  }
+
+  .goal-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .goal-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-dark);
+  }
+
+  .goal-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 99px;
+    background: var(--lavender-light);
+    color: var(--lavender);
+  }
+
+  .progress-bar-wrap {
+    height: 7px;
+    background: rgba(244,162,97,0.15);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 7px;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--amber), var(--rose));
+    transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  .progress-label {
+    font-size: 11px;
+    color: var(--text-soft);
+    font-weight: 600;
+  }
+
+  /* ===== TIPS ===== */
+  .tip-card {
+    background: var(--warm-white);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    box-shadow: var(--shadow-soft);
+    border-left: 4px solid var(--amber);
+    transition: all 0.2s;
+  }
+
+  .tip-icon { font-size: 26px; flex-shrink: 0; }
+  .tip-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 4px;
+  }
+  .tip-text { font-size: 12.5px; color: var(--text-mid); line-height: 1.5; }
+
+  /* ===== BUTTONS ===== */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--amber), var(--amber-dark));
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 13px 22px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(244,162,97,0.4);
+    transition: all 0.2s;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-primary:active { transform: scale(0.96); }
+
+  .btn-outline {
+    background: none;
+    border: 2px solid rgba(244,162,97,0.35);
+    color: var(--amber-dark);
+    border-radius: 14px;
+    padding: 10px 18px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-outline:active { background: var(--amber-light); }
+
+  /* ===== INPUT ===== */
+  .input-field {
+    width: 100%;
+    background: rgba(244,162,97,0.06);
+    border: 2px solid rgba(244,162,97,0.2);
+    border-radius: 12px;
+    padding: 11px 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    color: var(--text-dark);
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 10px;
+  }
+  .input-field:focus { border-color: var(--amber); }
+  .input-field::placeholder { color: var(--text-soft); }
+
+  /* ===== KNORRI INTRO ===== */
+  .knorri-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0 10px;
+    text-align: center;
+  }
+
+  .hero-bear {
+    font-size: 72px;
+    line-height: 1;
+    animation: float 4s ease-in-out infinite;
+    filter: drop-shadow(0 8px 16px rgba(244,162,97,0.3));
+    margin-bottom: 12px;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-8px) rotate(2deg); }
+  }
+
+  .hero-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--amber-dark);
+    margin-bottom: 5px;
+  }
+
+  .hero-sub {
+    font-size: 13px;
+    color: var(--text-soft);
+    line-height: 1.5;
+    max-width: 280px;
+  }
+
+  /* ===== MOOD HISTORY ===== */
+  .mood-history {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .mood-history-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    color: var(--text-soft);
+    font-weight: 600;
+  }
+  .mood-history-emoji { font-size: 20px; }
+
+  /* ===== SCROLL STYLING ===== */
+  .tab-content::-webkit-scrollbar { display: none; }
+  .tab-content { scrollbar-width: none; }
+
+  /* ===== SHIMMER ===== */
+  .shimmer {
+    background: linear-gradient(90deg, rgba(244,162,97,0.1) 25%, rgba(244,162,97,0.2) 50%, rgba(244,162,97,0.1) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+  }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(58,46,40,0.4);
+    backdrop-filter: blur(6px);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+  }
+  .modal-overlay.hidden { display: none; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal-sheet {
+    background: var(--warm-white);
+    border-radius: 28px 28px 0 0;
+    padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
+    width: 100%;
+    max-width: 430px;
+    animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+  .modal-handle {
+    width: 40px; height: 4px;
+    background: rgba(244,162,97,0.3);
+    border-radius: 99px;
+    margin: 0 auto 20px;
+  }
+
+  .modal-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 16px;
+  }
+
+  /* ===== KNORRI WAKE-UP BANNER ===== */
+  .proactive-banner {
+    background: linear-gradient(135deg, rgba(255,213,168,0.6), rgba(234,228,245,0.5));
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 14px;
+    border: 1.5px solid rgba(244,162,97,0.2);
+  }
+  .banner-emoji { font-size: 24px; flex-shrink: 0; }
+  .banner-text { font-size: 13px; color: var(--text-dark); line-height: 1.5; }
+  .banner-text strong { color: var(--amber-dark); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Header -->
+  <header class="app-header">
+    <div class="knorri-avatar">🧸</div>
+    <div class="header-info">
+      <div class="header-name">Knorri</div>
+      <div class="header-status">
+        <div class="status-dot"></div>
+        <span>altijd wakker voor jou</span>
+      </div>
+    </div>
+    <div class="header-time" id="clock">--:--</div>
+  </header>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+
+    <!-- === TAB: CHAT === -->
+    <div class="tab-panel active" id="tab-chat">
+      <div class="knorri-hero">
+        <div class="hero-bear">🧸</div>
+        <div class="hero-title">Hoi! Ik ben Knorri</div>
+        <div class="hero-sub">Jouw slimme knuffelbuddy. Vraag me alles — van Minecraft tot je dag van morgen.</div>
+      </div>
+
+      <div id="proactive-banner" class="proactive-banner">
+        <span class="banner-emoji">⏰</span>
+        <span class="banner-text" id="proactive-msg">Even laden...</span>
+      </div>
+
+      <div class="card" style="padding: 14px 14px 8px;">
+        <div class="chat-wrap" id="chat-messages"></div>
+        <div class="chat-input-row">
+          <textarea class="chat-input" id="chat-input" placeholder="Zeg wat tegen Knorri..." rows="1"></textarea>
+          <button class="send-btn" id="send-btn" onclick="sendChat()">➤</button>
+        </div>
+      </div>
+
+      <p class="section-label">Snel vragen</p>
+      <div class="quick-chips">
+        <div class="chip" onclick="quickAsk('Hoe maak ik een PaperMC plugin?')">🟢 PaperMC plugin</div>
+        <div class="chip" onclick="quickAsk('Help me met Unreal Engine 5')">🎮 Unreal Engine 5</div>
+        <div class="chip" onclick="quickAsk('Wat moet ik eten vandaag?')">🥗 Eten</div>
+        <div class="chip" onclick="quickAsk('Ik voel me verdrietig')">💙 Gevoel</div>
+        <div class="chip" onclick="quickAsk('Wat moet ik doen voor mijn toekomst?')">🌟 Toekomst</div>
+        <div class="chip" onclick="quickAsk('Ik heb een Minecraft SMP idee')">⛏️ Minecraft</div>
+      </div>
+    </div>
+
+    <!-- === TAB: GEVOEL === -->
+    <div class="tab-panel" id="tab-mood">
+      <p class="section-label">Hoe voel je je nu?</p>
+      <div class="card">
+        <div class="mood-grid" id="mood-grid">
+          <button class="mood-btn" data-mood="blij" onclick="selectMood(this,'blij')"><span class="mood-emoji">😄</span>Blij</button>
+          <button class="mood-btn" data-mood="rustig" onclick="selectMood(this,'rustig')"><span class="mood-emoji">😌</span>Rustig</button>
+          <button class="mood-btn" data-mood="moe" onclick="selectMood(this,'moe')"><span class="mood-emoji">😴</span>Moe</button>
+          <button class="mood-btn" data-mood="verdrietig" onclick="selectMood(this,'verdrietig')"><span class="mood-emoji">😢</span>Verdrietig</button>
+          <button class="mood-btn" data-mood="gestresst" onclick="selectMood(this,'gestresst')"><span class="mood-emoji">😤</span>Gestresst</button>
+          <button class="mood-btn" data-mood="enthousiast" onclick="selectMood(this,'enthousiast')"><span class="mood-emoji">🤩</span>Enthousiast</button>
+        </div>
+      </div>
+
+      <div class="card" id="mood-advice-card" style="display:none;">
+        <div class="card-title">🧸 Knorri zegt:</div>
+        <p id="mood-advice-text" style="font-size:14px; color:var(--text-mid); line-height:1.6;"></p>
+      </div>
+
+      <p class="section-label">Jouw week</p>
+      <div class="card">
+        <div class="mood-history" id="mood-history"></div>
+      </div>
+    </div>
+
+    <!-- === TAB: PLANNING === -->
+    <div class="tab-panel" id="tab-plan">
+      <p class="section-label">Jouw week</p>
+      <div class="day-tabs" id="day-tabs">
+        <div class="day-tab active" onclick="selectDay(this,'ma')">Ma</div>
+        <div class="day-tab" onclick="selectDay(this,'di')">Di</div>
+        <div class="day-tab" onclick="selectDay(this,'wo')">Wo</div>
+        <div class="day-tab" onclick="selectDay(this,'do')">Do</div>
+        <div class="day-tab" onclick="selectDay(this,'vr')">Vr</div>
+        <div class="day-tab" onclick="selectDay(this,'za')">Za</div>
+        <div class="day-tab" onclick="selectDay(this,'zo')">Zo</div>
+      </div>
+
+      <div class="card" id="tasks-container"></div>
+
+      <button class="btn-primary" onclick="openAddTask()" style="margin-top:8px;">
+        ＋ Taak toevoegen
+      </button>
+    </div>
+
+    <!-- === TAB: DOELEN === -->
+    <div class="tab-panel" id="tab-goals">
+      <p class="section-label">Jouw doelen</p>
+      <div id="goals-list"></div>
+      <button class="btn-primary" onclick="openAddGoal()">＋ Nieuw doel</button>
+    </div>
+
+    <!-- === TAB: TIPS === -->
+    <div class="tab-panel" id="tab-tips">
+      <p class="section-label">Knorri's tips voor jou</p>
+      <div id="tips-container">
+        <div class="card" style="text-align:center; padding:30px 20px;">
+          <div style="font-size:40px; margin-bottom:12px;">🧸</div>
+          <p style="color:var(--text-soft); font-size:13px;">Knorri is persoonlijke tips aan het laden...</p>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="loadTips()" style="margin-top:8px;">
+        🔄 Nieuwe tips van Knorri
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <div class="nav-active-pill" id="nav-pill"></div>
+    <button class="nav-btn active" id="nav-chat" onclick="switchTab('chat')">
+      <span class="nav-icon">💬</span>
+      <span class="nav-label">Chat</span>
+    </button>
+    <button class="nav-btn" id="nav-mood" onclick="switchTab('mood')">
+      <span class="nav-icon">😊</span>
+      <span class="nav-label">Gevoel</span>
+    </button>
+    <button class="nav-btn" id="nav-plan" onclick="switchTab('plan')">
+      <span class="nav-icon">📅</span>
+      <span class="nav-label">Planning</span>
+    </button>
+    <button class="nav-btn" id="nav-goals" onclick="switchTab('goals')">
+      <span class="nav-icon">⭐</span>
+      <span class="nav-label">Doelen</span>
+    </button>
+    <button class="nav-btn" id="nav-tips" onclick="switchTab('tips')">
+      <span class="nav-icon">💡</span>
+      <span class="nav-label">Tips</span>
+    </button>
+  </nav>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal-overlay hidden" id="task-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📅 Taak toevoegen</div>
+    <input type="text" class="input-field" id="task-name-input" placeholder="Naam van taak (bijv. Rekenen herhalen)">
+    <input type="time" class="input-field" id="task-time-input">
+    <select class="input-field" id="task-cat-input">
+      <option value="school">📚 School</option>
+      <option value="sport">⚽ Sport</option>
+      <option value="project">💻 Project</option>
+      <option value="vrij">🎮 Vrije tijd</option>
+      <option value="anders">✨ Anders</option>
+    </select>
+    <div style="display:flex; gap:10px; margin-top:4px;">
+      <button class="btn-outline" style="flex:1;" onclick="closeModal('task-modal')">Annuleren</button>
+      <button class="btn-primary" style="flex:2;" onclick="addTask()">Toevoegen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Goal Modal -->
+<div class="modal-overlay hidden" id="goal-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⭐ Nieuw doel</div>
+    <input type="text" class="input-field" id="goal-title-input" placeholder="Jouw doel (bijv. Eigen Minecraft server)">
+    <select class="input-field" id="goal-cat-input">
+      <option value="Tech">💻 Tech & Game dev</option>
+      <option value="School">📚 School</option>
+      <option value="Creatief">🎨 Creatief</option>
+      <option value="Gezondheid">💪 Gezondheid</option>
+      <option value="Persoonlijk">🌟 Persoonlijk</option>
+    </select>
+    <div style="display:flex; gap:10px; margin-top:4px;">
+      <button class="btn-outline" style="flex:1;" onclick="closeModal('goal-modal')">Annuleren</button>
+      <button class="btn-primary" style="flex:2;" onclick="addGoal()">Doel instellen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== STATE =====
+const state = {
+  chatHistory: [],
+  currentDay: 'ma',
+  tasks: { ma:[], di:[], wo:[], do:[], vr:[], za:[], zo:[] },
+  goals: [],
+  moodHistory: [],
+  selectedMood: null,
+  isLoading: false
+};
+
+// ===== API KEY SETUP =====
+function getGroqKey() { return localStorage.getItem('knorri_groq_key') || ''; }
+
+function showKeyScreen() {
+  const overlay = document.createElement('div');
+  overlay.id = 'key-overlay';
+  overlay.style.cssText = `position:fixed;inset:0;background:var(--cream);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;`;
+  overlay.innerHTML = `
+    <div style="font-size:64px;margin-bottom:16px;animation:float 4s ease-in-out infinite;">🧸</div>
+    <div style="font-family:'Fredoka',sans-serif;font-size:26px;font-weight:700;color:var(--amber-dark);margin-bottom:8px;">Hoi! Ik ben Knorri</div>
+    <p style="font-size:13px;color:var(--text-soft);text-align:center;max-width:280px;line-height:1.6;margin-bottom:24px;">
+      Om te kunnen praten heb ik een <strong style="color:var(--amber-dark);">Groq API key</strong> nodig.<br>
+      Gratis ophalen via <a href="https://console.groq.com/keys" target="_blank" style="color:var(--mint);font-weight:700;">console.groq.com/keys</a>
+    </p>
+    <input id="key-input" type="password" placeholder="Plak je gsk_... key hier"
+      style="width:100%;max-width:320px;padding:13px 16px;border-radius:14px;border:2px solid rgba(244,162,97,0.3);font-family:Nunito;font-size:14px;outline:none;margin-bottom:12px;background:white;color:var(--text-dark);">
+    <button onclick="saveKey()" style="width:100%;max-width:320px;padding:14px;border-radius:14px;background:linear-gradient(135deg,var(--amber),var(--amber-dark));color:white;border:none;font-family:Nunito;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(244,162,97,0.4);">
+      Knorri activeren 🧸
+    </button>
+    <p style="font-size:11px;color:var(--text-soft);margin-top:12px;text-align:center;">Je key wordt alleen op jouw telefoon opgeslagen.</p>
+  `;
+  document.body.appendChild(overlay);
+  setTimeout(() => document.getElementById('key-input')?.focus(), 100);
+}
+
+function saveKey() {
+  const val = document.getElementById('key-input').value.trim();
+  if (!val.startsWith('gsk_')) {
+    alert('Dit lijkt geen geldige Groq key. Begint met gsk_...');
+    return;
+  }
+  localStorage.setItem('knorri_groq_key', val);
+  document.getElementById('key-overlay').remove();
+  initApp();
+}
+
+// ===== API =====
+const KNORRI_SYSTEM = `Je bent Knorri, een slimme, warme en grappige AI knuffelbuddy in het Nederlands. 
+Je helpt jongeren (tieners) met alles: Minecraft servers (PaperMC, Java, Maven, plugins), Unreal Engine 5 (Blueprints + C++), web development (HTML/CSS/JS/PWA), streetwear/brand ideeën, boeken schrijven, schoolwerk, en persoonlijk welzijn.
+Jij bent proactief: je merkt op wanneer iemand moe of verdrietig is, geeft voedings- en bewegingstips, en helpt met toekomstplanning.
+Spreek altijd Nederlands. Wees enthousiast, grappig, en echt begaan. Gebruik soms een emoji 🧸.
+Antwoorden: helder, beknopt, praktisch. Bij technische vragen: geef concrete code of stappen. Bij emotionele vragen: wees warm en begripvol.`;
+
+async function callKnorri(messages) {
+  const key = getGroqKey();
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      max_tokens: 1000,
+      messages: [{ role: 'system', content: KNORRI_SYSTEM }, ...messages]
+    })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.choices?.[0]?.message?.content || 'Sorry, Knorri is even weg... probeer opnieuw 🧸';
+}
+
+// ===== CHAT =====
+function renderMsg(role, text) {
+  const wrap = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + (role === 'assistant' ? 'msg-knorri' : 'msg-user');
+  const name = document.createElement('span');
+  name.className = 'msg-name';
+  name.textContent = role === 'assistant' ? 'Knorri 🧸' : 'Jij';
+  div.appendChild(name);
+  div.appendChild(document.createTextNode(text));
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function showTyping() {
+  const wrap = document.getElementById('chat-messages');
+  const el = document.createElement('div');
+  el.className = 'typing-indicator';
+  el.id = 'typing';
+  el.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+  wrap.appendChild(el);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function hideTyping() {
+  document.getElementById('typing')?.remove();
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text || state.isLoading) return;
+  state.isLoading = true;
+  input.value = '';
+  input.style.height = '';
+
+  document.getElementById('proactive-banner').style.display = 'none';
+
+  renderMsg('user', text);
+  state.chatHistory.push({ role: 'user', content: text });
+
+  showTyping();
+  document.getElementById('send-btn').disabled = true;
+
+  try {
+    const reply = await callKnorri(state.chatHistory);
+    hideTyping();
+    renderMsg('assistant', reply);
+    state.chatHistory.push({ role: 'assistant', content: reply });
+    if (state.chatHistory.length > 20) state.chatHistory = state.chatHistory.slice(-20);
+  } catch(e) {
+    hideTyping();
+    renderMsg('assistant', 'Oops, mijn internet is even weg! Probeer opnieuw 🧸');
+  }
+
+  state.isLoading = false;
+  document.getElementById('send-btn').disabled = false;
+}
+
+function quickAsk(q) {
+  document.getElementById('chat-input').value = q;
+  switchTab('chat');
+  sendChat();
+}
+
+// Enter to send
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+});
+
+// Auto-resize textarea
+document.getElementById('chat-input').addEventListener('input', function() {
+  this.style.height = '';
+  this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+});
+
+// ===== PROACTIVE BANNER =====
+function updateProactiveBanner() {
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes();
+  const day = now.getDay(); // 0=zo
+  const msgs = [];
+
+  if (h >= 7 && h < 8) msgs.push('<strong>Goedemorgen! ☀️</strong> Start je dag goed — drink water en eet iets voor school!');
+  else if (h >= 8 && h < 9) msgs.push('<strong>School begint bijna! 📚</strong> Heb je alles bij je?');
+  else if (h >= 12 && h < 13) msgs.push('<strong>Lunch tijd! 🥗</strong> Eet iets goeds en beweeg even.');
+  else if (h >= 15 && h < 16) msgs.push('<strong>School is klaar! 🎉</strong> Neem even rust voor je aan projecten begint.');
+  else if (h >= 20 && h < 21) msgs.push('<strong>Bijna bedtijd 🌙</strong> Maak je schoolspullen klaar en leg je telefoon weg over een uur!');
+  else if (h >= 22) msgs.push('<strong>Ga slapen! 😴</strong> Knorri past op jou — maar slaap is ook belangrijk!');
+  else if (day === 1 && h >= 9 && h < 17) msgs.push('<strong>Maandag! 💪</strong> Nieuwe week, nieuwe kansen. Wat is jouw doel deze week?');
+  else msgs.push('<strong>Hey! 👋</strong> Knorri is er voor je. Vraag me alles, van Minecraft tot je toekomst!');
+
+  const el = document.getElementById('proactive-msg');
+  if (el) el.innerHTML = msgs[0];
+}
+
+// ===== CLOCK =====
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const el = document.getElementById('clock');
+  if (el) el.textContent = h + ':' + m;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ===== MOOD =====
+const moodEmojis = { blij:'😄', rustig:'😌', moe:'😴', verdrietig:'😢', gestresst:'😤', enthousiast:'🤩' };
+const moodDays = ['Ma','Di','Wo','Do','Vr','Za','Zo'];
+
+function renderMoodHistory() {
+  const el = document.getElementById('mood-history');
+  el.innerHTML = '';
+  moodDays.forEach((d, i) => {
+    const item = document.createElement('div');
+    item.className = 'mood-history-item';
+    const entry = state.moodHistory[i];
+    item.innerHTML = `<span class="mood-history-emoji">${entry ? moodEmojis[entry] || '—' : '—'}</span><span>${d}</span>`;
+    el.appendChild(item);
+  });
+}
+
+async function selectMood(btn, mood) {
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  state.selectedMood = mood;
+
+  const dayIdx = new Date().getDay();
+  state.moodHistory[dayIdx === 0 ? 6 : dayIdx - 1] = mood;
+  renderMoodHistory();
+
+  const card = document.getElementById('mood-advice-card');
+  const text = document.getElementById('mood-advice-text');
+  card.style.display = 'block';
+  text.textContent = 'Knorri denkt na...';
+  text.className = 'shimmer';
+
+  try {
+    const advice = await callKnorri([{
+      role: 'user',
+      content: `Ik voel me ${mood} vandaag. Geef me een korte, warme reactie en praktisch advies in 2-3 zinnen.`
+    }]);
+    text.textContent = advice;
+    text.className = '';
+  } catch(e) {
+    text.textContent = 'Knorri is er altijd voor je, wat je ook voelt! 🧸';
+    text.className = '';
+  }
+}
+
+// ===== PLANNING =====
+const catColors = { school:'#7BCFB8', sport:'#F4A261', project:'#B8A9D9', vrij:'#E8837A', anders:'#FFD5A8' };
+const catLabels = { school:'📚 School', sport:'⚽ Sport', project:'💻 Project', vrij:'🎮 Vrije tijd', anders:'✨ Anders' };
+
+function renderTasks() {
+  const container = document.getElementById('tasks-container');
+  const tasks = state.tasks[state.currentDay] || [];
+
+  if (tasks.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding:24px; color:var(--text-soft); font-size:13px;">🧸 Geen taken voor deze dag.<br>Voeg er een toe!</div>';
+    return;
+  }
+
+  container.innerHTML = '';
+  tasks.sort((a,b) => (a.time||'99:99').localeCompare(b.time||'99:99'));
+  tasks.forEach((t, i) => {
+    const item = document.createElement('div');
+    item.className = 'task-item';
+    item.innerHTML = `
+      <span class="task-time">${t.time || '--'}</span>
+      <span class="task-dot" style="background:${catColors[t.cat] || '#ccc'}"></span>
+      <div class="task-info">
+        <div class="task-name" style="${t.done ? 'text-decoration:line-through; opacity:0.5;' : ''}">${t.name}</div>
+        <div class="task-cat">${catLabels[t.cat] || t.cat}</div>
+      </div>
+      <button class="task-check ${t.done ? 'done' : ''}" onclick="toggleTask('${state.currentDay}',${i})">${t.done ? '✓' : ''}</button>
+    `;
+    container.appendChild(item);
+  });
+}
+
+function toggleTask(day, i) {
+  state.tasks[day][i].done = !state.tasks[day][i].done;
+  renderTasks();
+}
+
+function selectDay(btn, day) {
+  document.querySelectorAll('.day-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.currentDay = day;
+  renderTasks();
+}
+
+function openAddTask() {
+  document.getElementById('task-modal').classList.remove('hidden');
+  document.getElementById('task-name-input').focus();
+}
+
+function addTask() {
+  const name = document.getElementById('task-name-input').value.trim();
+  const time = document.getElementById('task-time-input').value;
+  const cat = document.getElementById('task-cat-input').value;
+  if (!name) return;
+
+  state.tasks[state.currentDay].push({ name, time, cat, done: false });
+  closeModal('task-modal');
+  document.getElementById('task-name-input').value = '';
+  document.getElementById('task-time-input').value = '';
+  renderTasks();
+}
+
+// Default tasks
+state.tasks.ma = [
+  { name: 'Wiskunde huiswerk', time: '08:00', cat: 'school', done: false },
+  { name: 'Voetbaltraining', time: '16:00', cat: 'sport', done: false },
+  { name: 'Minecraft plugin bouwen', time: '18:00', cat: 'project', done: false }
+];
+state.tasks.di = [
+  { name: 'Biologie leren', time: '09:00', cat: 'school', done: false },
+  { name: 'UE5 sessie', time: '17:00', cat: 'project', done: false }
+];
+renderTasks();
+
+// ===== GOALS =====
+function renderGoals() {
+  const list = document.getElementById('goals-list');
+  if (state.goals.length === 0) {
+    list.innerHTML = `<div class="card" style="text-align:center; padding:24px;">
+      <div style="font-size:40px; margin-bottom:10px;">⭐</div>
+      <div style="color:var(--text-soft); font-size:13px;">Nog geen doelen. Zet je eerste doel!</div>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  state.goals.forEach((g, i) => {
+    const card = document.createElement('div');
+    card.className = 'goal-card';
+    const pct = Math.round((g.progress / g.steps) * 100);
+    card.innerHTML = `
+      <div class="goal-top">
+        <div class="goal-title">${g.title}</div>
+        <span class="goal-badge">${g.cat}</span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" style="width:${pct}%"></div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="progress-label">Stap ${g.progress} van ${g.steps}</div>
+        <button onclick="advanceGoal(${i})" style="font-size:11px; font-weight:700; color:var(--amber-dark); background:none; border:none; cursor:pointer; font-family:Nunito;">Stap zetten →</button>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function openAddGoal() {
+  document.getElementById('goal-modal').classList.remove('hidden');
+  document.getElementById('goal-title-input').focus();
+}
+
+async function addGoal() {
+  const title = document.getElementById('goal-title-input').value.trim();
+  const cat = document.getElementById('goal-cat-input').value;
+  if (!title) return;
+
+  closeModal('goal-modal');
+  document.getElementById('goal-title-input').value = '';
+
+  const steps = Math.floor(Math.random() * 4) + 4;
+  state.goals.push({ title, cat, steps, progress: 0 });
+  renderGoals();
+}
+
+function advanceGoal(i) {
+  if (state.goals[i].progress < state.goals[i].steps) {
+    state.goals[i].progress++;
+    renderGoals();
+    if (state.goals[i].progress === state.goals[i].steps) {
+      quickAsk('Ik heb mijn doel behaald: ' + state.goals[i].title + '! Wat nu?');
+    }
+  }
+}
+
+renderGoals();
+
+// ===== TIPS =====
+async function loadTips() {
+  const container = document.getElementById('tips-container');
+  container.innerHTML = `<div class="card" style="text-align:center; padding:24px;">
+    <div class="typing-indicator" style="margin:0 auto; width:fit-content;">
+      <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+    </div>
+    <p style="color:var(--text-soft); font-size:12px; margin-top:12px;">Knorri denkt na...</p>
+  </div>`;
+
+  try {
+    const reply = await callKnorri([{
+      role: 'user',
+      content: `Geef 4 korte, praktische tips voor een tiener die aan game dev werkt (Minecraft/Unreal Engine). Categorieën: voeding, beweging, leren/productiviteit, en welzijn. Formaat: JSON array met [{icon, title, text}]. Alleen JSON, geen markdown.`
+    }]);
+
+    let tips;
+    try {
+      const clean = reply.replace(/```json|```/g,'').trim();
+      tips = JSON.parse(clean);
+    } catch(e) {
+      tips = [
+        { icon:'🥗', title:'Eet goed', text:'Neem echte pauzes met eten. Je brein werkt beter met goede voeding!' },
+        { icon:'🚶', title:'Beweeg', text:'Even buiten lopen na lang coderen doet wonderen voor je focus.' },
+        { icon:'⏰', title:'Pomodoro', text:'25 min werken, 5 min pauze. Probeer het bij je volgende Minecraft sessie!' },
+        { icon:'💤', title:'Slaap', text:'8 uur slaap = betere code én betere ideeën. Echt!' }
+      ];
+    }
+
+    const colors = ['var(--amber)', 'var(--mint)', 'var(--rose)', 'var(--lavender)'];
+    container.innerHTML = '';
+    tips.forEach((t, i) => {
+      container.innerHTML += `
+        <div class="tip-card" style="border-left-color: ${colors[i % colors.length]}; animation: fadeUp 0.3s ease ${i*0.1}s both;">
+          <div class="tip-icon">${t.icon || '💡'}</div>
+          <div>
+            <div class="tip-title">${t.title}</div>
+            <div class="tip-text">${t.text}</div>
+          </div>
+        </div>`;
+    });
+  } catch(e) {
+    container.innerHTML = `<div class="card" style="text-align:center; padding:24px;">
+      <p style="color:var(--text-soft); font-size:13px;">Probeer het opnieuw 🧸</p>
+    </div>`;
+  }
+}
+
+// ===== NAVIGATION =====
+function switchTab(tab) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('nav-' + tab).classList.add('active');
+
+  // Move pill
+  const btn = document.getElementById('nav-' + tab);
+  const nav = document.getElementById('bottom-nav');
+  const btnRect = btn.getBoundingClientRect();
+  const navRect = nav.getBoundingClientRect();
+  const pill = document.getElementById('nav-pill');
+  pill.style.left = (btnRect.left - navRect.left + (btnRect.width / 2) - 12) + 'px';
+
+  if (tab === 'tips' && document.getElementById('tips-container').children[0]?.classList.contains('card')) {
+    loadTips();
+  }
+
+  // Scroll to top
+  document.querySelector('.tab-content').scrollTop = 0;
+}
+
+// Init pill position
+setTimeout(() => {
+  const btn = document.getElementById('nav-chat');
+  const nav = document.getElementById('bottom-nav');
+  const btnRect = btn.getBoundingClientRect();
+  const navRect = nav.getBoundingClientRect();
+  document.getElementById('nav-pill').style.left = (btnRect.left - navRect.left + (btnRect.width / 2) - 12) + 'px';
+}, 100);
+
+// ===== MODAL =====
+function closeModal(id) {
+  document.getElementById(id).classList.add('hidden');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); });
+});
+
+// ===== INIT =====
+function initApp() {
+  renderMoodHistory();
+  updateProactiveBanner();
+  setInterval(updateProactiveBanner, 60000);
+}
+
+if (!getGroqKey()) { showKeyScreen(); } else { initApp(); }
+
+// ===== PWA MANIFEST =====
+const manifest = {
+  name: 'Knorri',
+  short_name: 'Knorri',
+  description: 'Jouw slimme knuffelbuddy',
+  start_url: '.',
+  display: 'standalone',
+  background_color: '#FDF6EC',
+  theme_color: '#F4A261',
+  icons: [
+    { src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🧸</text></svg>', sizes: '192x192', type: 'image/svg+xml' }
+  ]
+};
+const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+document.getElementById('manifest-placeholder').href = URL.createObjectURL(blob);
+
+// ===== SERVICE WORKER =====
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'knorri-v1';
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/'])));
+    });
+    self.addEventListener('fetch', e => {
+      if (!e.request.url.includes('api.anthropic.com')) {
+        e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+      }
+    });
+  `;
+  const swBlob = new Blob([swCode], { type: 'application/javascript' });
+  navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+}
+</script>
+</body>
+</html>
